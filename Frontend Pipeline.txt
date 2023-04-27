@@ -1,0 +1,70 @@
+Frontend Pipeline
+
+Using branch "test-server" for auto deploy code
+branch github url: https://github.com/arintechinc/arinweb/tree/test-server
+
+1. Create a appspec.yml:
+    # In this file we define the source and destination of files
+
+    files:
+      # copies all files from source to dest
+      - source: /arinalert
+      # files copied to working app directory on EC2 instance
+        destination: /var/www/html/arinalert
+        file_exists_behavior: OVERWRITE
+
+    # Hooks
+    hooks:
+      BeforeInstall:
+        - location: arinalert/cicd/scripts/install_dependencies
+          timeout: 300
+          runas: root
+
+      ApplicationStart:
+        - location: arinalert/cicd/scripts/build_app
+
+          # 5 min timeout can dec/inc as needed
+          timeout: 300
+          runas: root
+
+2. Create a folder director arinalert/cicd/scripts:
+
+In scripts we create two files:
+    1. install_dependencies
+
+        It have a commands to install dependencies of angular
+
+          cd /var/www/html/arinalert
+          sudo yum -y install nodejs
+          sudo yum -y install npm
+          npm install -g @angular/cli
+          npm i
+
+    2. build_app
+
+        It have a commands to build app using following commands
+
+          cd /var/www/html/arinalert
+          npm i
+          ng build --prod
+          cd /var/www/html
+          cp -a /var/www/html/arinalert/dist/mark5/. .
+
+3 Created a deployment group on AWS account
+
+    Deployment group name: arintech-deployment-group
+    Application name: ec2-deploy
+    In Environment configuration/we have used Amazon EC2 instances
+
+    Key: Name
+    Value: arin_alert_test # ec2 running instance
+
+4. Create a pipeline for frontend named as "arintech-fe-"
+
+5. We commit code on git hub then pipeline get started
+
+6  click on " arintech-fe-" pipeline to see source and deploy
+
+7  See details in deploy stage -> Go to deployment lifecycle event -> View events
+
+8. On View event see the Deployment stage of pipeline to be succeed with  latest commit message.
